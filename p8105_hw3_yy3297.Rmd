@@ -3,6 +3,9 @@ title: "p8105_hw3_yy3297"
 author: "Yunxi Yang"
 date: "2022-10-13"
 output: github_document
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -31,7 +34,6 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-
 ### Problem 1
 
 #### Read in the data
@@ -46,9 +48,14 @@ instacart =
 
 #### Answer questions about the data
 
-This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row resprenting a single product from an instacart order. Variables include identifiers for user, order, and product; the order in which each product was added to the cart. There are several order-level variables, describing the day and time of the order, and number of days since prior order. Then there are several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether the item has been ordered by this user in the past. In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns, with each row resprenting a single product from an instacart order.
+Variables include identifiers for user, order, and product; the order in which each product was added to the cart.
+There are several order-level variables, describing the day and time of the order, and number of days since prior order.
+Then there are several item-specific variables, describing the product name (e.g. Yogurt, Avocado), department (e.g. dairy and eggs, produce), and aisle (e.g. yogurt, fresh fruits), and whether the item has been ordered by this user in the past.
+In total, there are `r instacart %>% select(product_id) %>% distinct %>% count` products found in `r instacart %>% select(user_id, order_id) %>% distinct %>% count` orders from `r instacart %>% select(user_id) %>% distinct %>% count` distinct users.
 
-Below is a table summarizing the number of items ordered from aisle. In total, there are 134 aisles, with fresh vegetables and fresh fruits holding the most items ordered by far.
+Below is a table summarizing the number of items ordered from aisle.
+In total, there are 134 aisles, with fresh vegetables and fresh fruits holding the most items ordered by far.
 
 ```{r}
 instacart %>% 
@@ -56,7 +63,8 @@ instacart %>%
   arrange(desc(n))
 ```
 
-Next is a plot that shows the number of items ordered in each aisle. Here, aisles are ordered by ascending number of items.
+Next is a plot that shows the number of items ordered in each aisle.
+Here, aisles are ordered by ascending number of items.
 
 ```{r}
 instacart %>% 
@@ -67,7 +75,6 @@ instacart %>%
   geom_point() + 
   labs(title = "Number of items ordered in each aisle") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
 ```
 
 Our next table shows the three most popular items in aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`, and includes the number of times each item is ordered in your table.
@@ -83,7 +90,9 @@ instacart %>%
   knitr::kable()
 ```
 
-Finally is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. This table has been formatted in an untidy manner for human readers. Pink Lady Apples are generally purchased slightly earlier in the day than Coffee Ice Cream, with the exception of day 5.
+Finally is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week.
+This table has been formatted in an untidy manner for human readers.
+Pink Lady Apples are generally purchased slightly earlier in the day than Coffee Ice Cream, with the exception of day 5.
 
 ```{r}
 instacart %>%
@@ -94,10 +103,13 @@ instacart %>%
   knitr::kable(digits = 2)
 ```
 
-
 ### Problem 2
 
-First, load and clean the accelerometer data set named as "accel_data". In this step, we will change the variable names with more clear and meaningful titles, and also we will 
+#### Import and Clean the data
+
+First, load and clean the accelerometer data set named as "accel_data".
+In this step, we will rename the variables with more clear and meaningful titles, and also we will add in the weekend/weekday variables into the data frame.
+
 ```{r}
 accel_data_df = 
   read_csv("p8105_hw3_data/accel_data.csv") %>%
@@ -109,10 +121,63 @@ accel_data_df =
   ) %>%
   mutate(
     day_type = ifelse (day == 'Saturday' |day == 'Sunday', "Weekend", "Weekday"),
+    activity_time_course_number = as.numeric(substring(activity_time_course_number, 10)),
     activity_counts = as.numeric(activity_counts)
   ) %>%
   select(week, day_id, day, day_type, everything())
 accel_data_df
 ```
 
+This data set contains `r nrow(accel_data_df)` rows and `r ncol(accel_data_df)` columns, with each row representing the activity counts recorded on the accelerometer during an one-minute time interval on a specific day for a 63 year-old male with BMI 25.
+Variables include `r colnames(accel_data_df)`.
+The 'week' variable is an order-level variable indicating the week number over the 5 testing weeks.
+The 'day_id' is also an order-level variable describing the nth day for data collection.
+The 'day' variable suggests on which day the data is collected.
+The 'day_type' variable describes whether the data collection day is a weekday or during the weekend.
+The 'activity_time_course_number' suggests the nth one-minute interval in a day for the data collection.
+The 'activity_counts' is a continuous variable suggesting the number of counts recorded by accelerometer.
 
+#### Create a new table
+
+Then, create a new table by aggregating across minutes to create a total activity variable for each day.
+
+```{r}
+accel_data_df %>% 
+  group_by (day_id, day, day_type) %>% 
+  summarize(activity_daily_counts = sum(activity_counts)) %>% 
+  arrange(activity_daily_counts) %>%
+  knitr::kable(digits = 2)
+```
+
+As for an apparent trend, only based on the table numbers, I think it is a bit hard to observe one.
+While I can make a guess after arranging the activity daily counts from the lowest to the highest.
+As we see, among the top 10 daily counts, the Wednesdays' counts occupied four places.
+And the two lowest counts among the five weeks come from Saturdays' data collection.
+Thus, maybe the activity daily counts will reach a lower level during the weekend, and will increase to a higher level during the weekdays.
+
+#### Make a Plot
+
+Next, make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week.
+
+```{r}
+accel_data_df %>%
+  group_by(day_id, day, activity_time_course_number) %>%
+  summarize(activity_interval_counts = sum(activity_counts)) %>% 
+  ggplot(aes(x = activity_time_course_number, y = activity_interval_counts, color = day)) + 
+  geom_point(alpha = 0.2) +
+  geom_smooth(se = FALSE) + 
+  theme(legend.position = "bottom") +
+  scale_x_continuous(breaks = seq(0, 1440, by = 180)) +
+  labs(
+    title = "Accelerometer Data by 24-Hour Activity Time Courses for Each Day",
+    x = "Minute Interval in a Day",
+    y = "Activity Counts"
+  )
+```
+
+#### Patterns and Conclusions:
+
+From the plot above, we noticed that each day in a week shares a similar dynamic pattern to a large extent. The activity counts remain at the lowest level in the midnight (1st to 180th minute-intervals, which suggests 00:00 am - 03:00 am). Next, the activity counts starts to increase rapidly from 180th to 540th minute intervals (which suggests 03:00 am - 9:00 am). Then, the activity counts remain at a relatively stable and high level until 1170th minute-interval(which suggests 7:30 pm). The activity accounts then begin to show a great up or down fluctuations until the midnight (1440th minute-interval) and eventually back to the lowest level. The activity count trend varies a little from day to day in a week. There are a few highlights: 1. On Sunday, the activity counts reach an outstanding higher level at around 630th minute-interval(10:30 am); 2. At around 1260th minute-interval (which suggests 9:00 pm), the activity counts will reach a very high level above the average on Friday, but will reach a very low level below the average on Tuesday and Sunday.
+
+
+### Problem 3
