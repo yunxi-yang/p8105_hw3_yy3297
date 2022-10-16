@@ -181,3 +181,65 @@ From the plot above, we noticed that each day in a week shares a similar dynamic
 
 
 ### Problem 3
+
+#### Read in the data
+
+```{r}
+data("ny_noaa")
+```
+
+This data set contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns, and include `r colnames(ny_noaa)` variable. This data set have five core variables for all New York state weather stations from January 1, 1981 through December 31, 2010. 
+The 'id' suggests weather station ID.
+The 'date' means date of observation.
+The 'prcp' indicates the precipitation in tenths of mm.
+The 'snow' means snowfall in mm.
+The 'snwd' suggests snow depth in mm.
+The 'tmax' means maximum temperature in tenths of C degrees.
+The 'tmin' suggests minimum temperature in tenths of C degrees.
+
+
+Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+#### Data cleaning
+
+```{r}
+ny_noaa_df= 
+  ny_noaa %>%
+  janitor::clean_names() %>%
+  separate(col = date, into = c ("year", "month", "day") , sep = "-", convert = TRUE) %>%
+  mutate(
+    year = as.integer(year),
+    month = month.abb[month],
+    day = as.integer(day),
+    prcp = as.numeric(prcp) / 10,
+    tmax = as.numeric(tmax) / 10,
+    tmin = as.numeric(tmin) / 10
+    )
+ny_noaa_df
+```
+#### Find most commonly observed values for 'snow'
+
+```{r}
+names(which(max(table(ny_noaa_df$snow))==table(ny_noaa_df$snow)))
+```
+
+#### Make a two-panel plot 1/2
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+```{r}
+
+```
+
+
+#### Make a two-panel plot 2/2
+
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+
+```{r}
+
+```
+
+
+
+
