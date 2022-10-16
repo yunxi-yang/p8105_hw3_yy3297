@@ -97,5 +97,22 @@ instacart %>%
 
 ### Problem 2
 
+First, load and clean the accelerometer data set named as "accel_data". In this step, we will change the variable names with more clear and meaningful titles, and also we will 
+```{r}
+accel_data_df = 
+  read_csv("p8105_hw3_data/accel_data.csv") %>%
+  janitor::clean_names() %>% 
+  pivot_longer(
+    cols = activity_1 : activity_1440,
+    names_to = 'activity_time_course_number',
+    values_to = 'activity_counts'
+  ) %>%
+  mutate(
+    day_type = ifelse (day == 'Saturday' |day == 'Sunday', "Weekend", "Weekday"),
+    activity_counts = as.numeric(activity_counts)
+  ) %>%
+  select(week, day_id, day, day_type, everything())
+accel_data_df
+```
 
 
