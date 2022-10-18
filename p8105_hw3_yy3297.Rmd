@@ -177,8 +177,15 @@ accel_data_df %>%
 
 #### Patterns and Conclusions:
 
-From the plot above, we noticed that each day in a week shares a similar dynamic pattern to a large extent. The activity counts remain at the lowest level in the midnight (1st to 180th minute-intervals, which suggests 00:00 am - 03:00 am). Next, the activity counts starts to increase rapidly from 180th to 540th minute intervals (which suggests 03:00 am - 9:00 am). Then, the activity counts remain at a relatively stable and high level until 1170th minute-interval(which suggests 7:30 pm). The activity accounts then begin to show a great up or down fluctuations until the midnight (1440th minute-interval) and eventually back to the lowest level. The activity count trend varies a little from day to day in a week. There are a few highlights: 1. On Sunday, the activity counts reach an outstanding higher level at around 630th minute-interval(10:30 am); 2. At around 1260th minute-interval (which suggests 9:00 pm), the activity counts will reach a very high level above the average on Friday, but will reach a very low level below the average on Tuesday and Sunday.
-
+From the plot above, we noticed that each day in a week shares a similar dynamic pattern to a large extent.
+The activity counts remain at the lowest level in the midnight (1st to 180th minute-intervals, which suggests 00:00 am - 03:00 am).
+Next, the activity counts starts to increase rapidly from 180th to 540th minute intervals (which suggests 03:00 am - 9:00 am).
+Then, the activity counts remain at a relatively stable and high level until 1170th minute-interval(which suggests 7:30 pm).
+The activity accounts then begin to show a great up or down fluctuations until the midnight (1440th minute-interval) and eventually back to the lowest level.
+The activity count trend varies a little from day to day in a week.
+There are a few highlights: 1.
+On Sunday, the activity counts reach an outstanding higher level at around 630th minute-interval(10:30 am); 2.
+At around 1260th minute-interval (which suggests 9:00 pm), the activity counts will reach a very high level above the average on Friday, but will reach a very low level below the average on Tuesday and Sunday.
 
 ### Problem 3
 
@@ -188,7 +195,8 @@ From the plot above, we noticed that each day in a week shares a similar dynamic
 data("ny_noaa")
 ```
 
-This data set contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns, and include `r colnames(ny_noaa)` variable. This data set have five core variables for all New York state weather stations from January 1, 1981 through December 31, 2010. 
+This data set contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns, and include `r colnames(ny_noaa)` variable.
+This data set have five core variables for all New York state weather stations from January 1, 1981 through December 31, 2010.
 The 'id' suggests weather station ID.
 The 'date' means date of observation.
 The 'prcp' indicates the precipitation in tenths of mm.
@@ -197,9 +205,16 @@ The 'snwd' suggests snow depth in mm.
 The 'tmax' means maximum temperature in tenths of C degrees.
 The 'tmin' suggests minimum temperature in tenths of C degrees.
 
-
-Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+Do some data cleaning.
+Create separate variables for year, month, and day.
+Ensure observations for temperature, precipitation, and snowfall are given in reasonable units.
+For snowfall, what are the most commonly observed values?
+Why?
 #### Data cleaning
+
+Clean the data set, and create seperate variables for year, month, and day.
+As for 'prcp', I convert its unit of 'in tenths of mm' into 'mm' by divided by 10.
+As for 'tmax' and 'tmin', I convert their units of 'in tenths of Celcius degress' into 'celcius degress' by divided by 10.
 
 ```{r}
 ny_noaa_df= 
@@ -216,30 +231,87 @@ ny_noaa_df=
     )
 ny_noaa_df
 ```
+
 #### Find most commonly observed values for 'snow'
+
+Next, find the mode values among the values in the 'snow' column.
 
 ```{r}
 names(which(max(table(ny_noaa_df$snow))==table(ny_noaa_df$snow)))
 ```
 
-#### Make a two-panel plot 1/2
+Therefore, the most commonly observed values for snowfall is 0 mm.
+This number makes sense and aligned with the real situation.
+In New York, snowy days are not common and only occurred sometimes in winter.
+This data set collects the whether data throughout the whole year, it is reasonale that most of the snowfall data is 0 as no snowfall in most of the days in a year.
 
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+#### Make a two-panel plot part 1
 
-```{r}
-
-```
-
-
-#### Make a two-panel plot 2/2
-
-Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
-
+Make a two-panel plot using ggplot function to show the average max temperature in January and in July in each station across years.
 
 ```{r}
-
+ny_noaa_df %>%
+  filter(month == c("Jan", "Jul")) %>%
+  drop_na(tmax) %>%
+  group_by(id, year, month) %>%
+  mutate(ave_tmax = mean(tmax, na.rm = TRUE)) %>%
+  select(id, year, month, ave_tmax) %>%
+  ggplot(aes(x = year, y = ave_tmax, color = month)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth() +
+  theme(legend.position = "bottom") +
+  labs(
+    x = "Year",
+    y = "Average Maximum Temperature (in celcius degrees)",
+    title = "Average Maximum Tempreture in January and July in Each Station across Years",
+    ) + 
+  facet_grid(. ~ month)
 ```
 
+Is there any observable / interpretable structure?
+Any outliers?
+We notice that the average maximum temperatures in July shows a more stable cycle than that in January.
+The trend line shape of the change in average maximum temperatures in July is similar to the shape of a sin graph, and its amplitude seems to be within 5 celcius degrees.
+While for the trend of the change in average maximum temperatures in January shows a large increase from 1980 to 1990, and enters a relatively stable up-and-down cycle after 1990.
+Moreover, there are few outliers we can observe from the graph that is too far above or below the trend line for both January and July, for example, the max temp reaches around 14 C degrees in January in around 2004 in one station which is an outlier.
 
+#### Make a two-panel plot part 2
 
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset
 
+```{r}
+tmax_tmin_plot = ny_noaa_df %>% 
+  drop_na() %>%
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex() +
+  geom_smooth(se = FALSE) +
+  theme(legend.position = "bottom") + 
+  labs(
+    title = "Maximum Temperature vs Minimum Temperature in NY",
+    x = "Maximum Temperature(in celcius degrees)",
+    y = "Minimum temperature(in celcius degrees)"
+    )
+```
+
+(ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+```{r}
+snow_dist = ny_noaa_df %>% 
+  drop_na() %>% 
+  filter(snow > 0, snow < 100) %>% 
+  mutate(year = as.factor(year)) %>%
+  ggplot(aes(x = year, y = snow, fill = year)) +
+  geom_violin() +
+  theme(legend.position = "none") + 
+  labs(
+    x = "Year",
+    y = "Snowfall(in mm)",
+    title = "Distribution of Snowfall in New York"
+  )
+```
+
+Make it into a two-panel plot.
+
+```{r two_panel}
+tmax_tmin_plot / snow_dist
+```
